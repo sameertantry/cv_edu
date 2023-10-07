@@ -18,7 +18,7 @@ test_dataset = FlowersClassificationDataset(
 test_loader = DataLoader(test_dataset, batch_size=1)
 
 model = LeNet(config.model)
-checkpoint = torch.load(config.experiment.path_to_weights + "lenet.pth")
+checkpoint = torch.load("lenet.pth")
 model.load_state_dict(checkpoint["model_state_dict"])
 
 loss_fn = nn.CrossEntropyLoss(reduction="sum")

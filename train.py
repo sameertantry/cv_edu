@@ -12,5 +12,5 @@ model = LeNet(config.model)
 # train loop makes no sense since we have tiny dataset
 torch.save(
     {"model_state_dict": model.state_dict()},
-    config.experiment.path_to_weights + "lenet.pth",
+    "lenet.pth",
 )
