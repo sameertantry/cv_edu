@@ -1,2 +1,1 @@
 # Computer vision educational projects
-

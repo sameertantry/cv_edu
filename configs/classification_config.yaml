@@ -1,0 +1,8 @@
+dataset:
+  path: "data/flowers/split.csv"
+  image_height: 224
+  iamge_width: 224
+  crop_scale: 0.2
+
+model:
+  path_to_weights: "weights/"
