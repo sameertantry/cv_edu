@@ -1,109 +1,97 @@
+import torch
 import torch.nn as nn
-import torch.nn.functional as F
-
-
-class ConvBlock(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(ConvBlock, self).__init__()
-        self.conv = nn.Conv2d(
-            in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1
-        )
-        self.conv_dropout = nn.Dropout2d()
-
-    def forward(self, x):
-        x = self.conv_dropout(self.conv(x))
-        x = F.relu(x)
-
-        return x
 
 
 class DownBlock(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(DownBlock, self).__init__()
-        self.conv_block = ConvBlock(in_channels=in_channels, out_channels=out_channels)
-        self.pooling = nn.MaxPool2d(kernel_size=2)
+    def __init__(self, in_channels: int, out_channels: int):
+        super().__init__()
+
+        self.block = nn.Sequential(
+            nn.Conv2d(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=4,
+                stride=2,
+                padding=1,
+                bias=False,
+            ),
+            nn.BatchNorm2d(out_channels),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Dropout2d(0.2),
+        )
 
     def forward(self, x):
-        x = self.conv_block(x)
-        y = self.pooling(x)
-
-        return y
+        return self.block(x)
 
 
 class UpBlock(nn.Module):
-    def __init__(self, in_channels, inner_channels, out_channels):
-        super(UpBlock, self).__init__()
-        self.conv_block = ConvBlock(in_channels=in_channels, out_channels=inner_channels)
-        self.upsample = nn.Upsample(scale_factor=2)
-        self.conv = nn.Conv2d(
-            in_channels=inner_channels, out_channels=out_channels, kernel_size=1
+    def __init__(self, in_channels: int, out_channels: int):
+        super().__init__()
+
+        self.block = nn.Sequential(
+            nn.ConvTranspose2d(
+                in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False
+            ),
+            nn.BatchNorm2d(out_channels),
+            nn.LeakyReLU(0.2, inplace=True),
         )
 
     def forward(self, x):
-        x = self.conv_block(x)
-        x = self.upsample(x)
-        x = self.conv(x)
-
-        return x
+        return self.block(x)
 
 
 class Generator(nn.Module):
-    def __init__(self, img_size=64, latent_dim=7, channels=128):
+    def __init__(self, img_size: int, latent_dim: int, n_channels: int):
         super().__init__()
 
-        self.img_size = img_size
-        self.channels = channels
+        self.size = img_size // 32
+        self.n_channels = n_channels
 
-        self.ll = nn.Linear(
-            in_features=latent_dim,
-            out_features=int(img_size / 4 * img_size / 4 * channels),
+        self.proj = nn.Linear(
+            in_features=latent_dim, out_features=self.size * self.size * self.n_channels
         )
 
-        self.up1 = UpBlock(
-            channels, 64, 32
-        )  # 128 x IMG / 4 x IMG / 4  --> 32 x IMG / 2 x IMG / 2
-        self.up2 = UpBlock(32, 16, 8)  # 32 x IMG / 2 x IMG / 2 --> 8 x IMG x IMG
+        self.convs = nn.Sequential(
+            nn.BatchNorm2d(self.n_channels),
+            UpBlock(self.n_channels, self.n_channels // 2),
+            UpBlock(self.n_channels // 2, self.n_channels // 4),
+            UpBlock(self.n_channels // 4, self.n_channels // 8),
+            UpBlock(self.n_channels // 8, self.n_channels // 16),
+            UpBlock(self.n_channels // 16, self.n_channels // 32),
+            nn.Conv2d(self.n_channels // 32, 3, kernel_size=1),
+            nn.Tanh(),
+        )
 
-        self.conv = nn.Conv2d(
-            in_channels=8, out_channels=3, kernel_size=1
-        )  # 8 x IMG x IMG --> 3 x IMG x IMG
+    def forward(self, x: torch.Tensor):
+        x = self.proj(x)
+        x = x.view(-1, self.n_channels, self.size, self.size)
 
-    def forward(self, x):
-        x = self.ll(x)
-        x = x.view(-1, self.channels, int(self.img_size / 4), int(self.img_size / 4))
-
-        x = self.up1(x)
-        x = self.up2(x)
-
-        x = self.conv(x)
-
-        return x
+        return self.convs(x)
 
 
 class Discriminator(nn.Module):
-    def __init__(self, channels=64):
+    def __init__(self, img_size: int, n_channels: int):
         super().__init__()
 
-        self.channels = channels
+        self.down_blocks = nn.Sequential(
+            DownBlock(3, n_channels // 32),
+            DownBlock(n_channels // 32, n_channels // 16),
+            DownBlock(n_channels // 16, n_channels // 8),
+            DownBlock(n_channels // 8, n_channels // 4),
+            DownBlock(n_channels // 4, n_channels // 2),
+            nn.Conv2d(n_channels // 2, n_channels, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(n_channels),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Dropout2d(0.2),
+            nn.Conv2d(n_channels, 1, kernel_size=1),
+        )
 
-        self.down1 = DownBlock(3, 8)  # 64x64 --> 32x32
-        self.down2 = DownBlock(8, 16)  # 32x32 --> 16x16
-        self.down3 = DownBlock(16, 32)  # 16x16x16 --> 32x8x8
-        self.down4 = DownBlock(32, channels)  # 32x8x8 --> 64x4x4
+        self.pred = nn.Sequential(
+            nn.Flatten(),
+            nn.Sigmoid(),
+        )
 
-        self.fc1 = nn.Linear(in_features=channels * 4 * 4, out_features=channels)
-        self.fc1_dropout = nn.Dropout()
-        self.fc2 = nn.Linear(in_features=channels, out_features=1)
+    def forward(self, x: torch.Tensor):
+        x = self.down_blocks(x)
 
-    def forward(self, x):
-        x = self.down1(x)
-        x = self.down2(x)
-        x = self.down3(x)
-        x = self.down4(x)
-
-        x = x.view(-1, self.channels * 4 * 4)
-
-        x = self.fc1_dropout(self.fc1(x))
-        x = self.fc2(x)
-
-        return x
+        return self.pred(x)

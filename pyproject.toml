@@ -24,7 +24,7 @@ pytest = "^7.4.2"
 
 [tool.black]
 line-length = 90
-target-version = ["py311"]
+target-version = ["py310"]
 
 [tool.isort]
 src_paths = ["ds_project"]
