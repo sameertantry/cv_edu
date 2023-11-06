@@ -14,5 +14,11 @@ model:
     - 128
     - 256
 
+  optimizer:
+    type: "adam"
+    params:
+      lr: 0.0003
+      weight_decay: 0.0001
+
 experiment:
   path_to_weights: "weights/"
