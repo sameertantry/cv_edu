@@ -78,6 +78,10 @@ class Lenet(L.LightningModule):
         metrics, yhat = self._eval_step(batch)
         self.log_dict({"test_" + name: value for name, value in metrics.items()})
 
+    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+        x, _ = batch
+        return self(x).argmax(-1)
+
     def _build_conv_layers(self) -> nn.Sequential:
         layers = []
         for i in range(len(self.config.channels) - 1):
