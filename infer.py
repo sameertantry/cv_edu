@@ -2,6 +2,7 @@ import hydra
 import lightning as L
 import pandas as pd
 from hydra.core.config_store import ConfigStore
+from lightning.pytorch.loggers import MLFlowLogger
 from nano_cv.dataset.utils import build_eval_dataloader_from_config
 from nano_cv.models.utils import build_model_from_config
 from nano_cv.tools.configs import (
@@ -10,6 +11,7 @@ from nano_cv.tools.configs import (
     InferenceConfig,
     Lenet,
 )
+from omegaconf import OmegaConf
 
 
 cs = ConfigStore.instance()
@@ -25,7 +27,15 @@ cs.store(group="model", name="base_lenet", node=Lenet)
 def main(cfg: InferenceConfig) -> None:
     model = build_model_from_config(cfg, from_checkpoint=True)
     dataloader = build_eval_dataloader_from_config(cfg)
-    trainer = L.Trainer(**cfg.trainer)
+
+    logger = MLFlowLogger(**cfg.logger)
+    logger.log_hyperparams(OmegaConf.to_container(cfg))
+    trainer = L.Trainer(
+        **cfg.trainer,
+        logger=[
+            logger,
+        ],
+    )
     trainer.test(model, dataloaders=dataloader)
     if cfg.task.name == "clf":
         raw_preds = trainer.predict(model, dataloader)

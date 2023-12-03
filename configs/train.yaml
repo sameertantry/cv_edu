@@ -1,3 +1,10 @@
+defaults:
+  - logger
+
+logger:
+  experiment_name: train
+  run_name: train_run
+
 model:
   optimizer:
     name: adam
@@ -11,6 +18,7 @@ dataloader:
 
 trainer:
   max_epochs: 2
-  limit_train_batches: 0.1
+  limit_train_batches: 0.5
+  log_every_n_steps: 1
 
 checkpoint_path: weights/logs/ckpt.pth
