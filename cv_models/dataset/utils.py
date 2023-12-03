@@ -23,11 +23,12 @@ def build_train_dataloader_from_config(config: DictConfig) -> DataLoader:
     )
 
 
-def build_eval_dataloader_from_config(config: DictConfig) -> DataLoader:
-    dataset = build_dataset_from_config(config=config, stage="test")
+def build_eval_dataloader_from_config(
+    config: DictConfig, stage: str = "test"
+) -> DataLoader:
+    dataset = build_dataset_from_config(config=config, stage=stage)
     return DataLoader(
         dataset=dataset,
-        batch_size=config.train.batch_size,
         shuffle=False,
-        num_workers=config.train.num_workers,
+        **config.dataloader,
     )

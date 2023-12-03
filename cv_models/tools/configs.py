@@ -35,5 +35,9 @@ class TrainConfig:
 
 
 @dataclass
-class InferConfig:
-    pass
+class InferenceConfig:
+    dataloader: Any
+    trainer: Any
+    data: Any
+    task: Any
+    model: Any

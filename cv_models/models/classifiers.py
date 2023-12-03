@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from omegaconf import DictConfig
+from torchmetrics import F1Score, Precision, Recall
 
 
 class ConvBlock(nn.Module):
@@ -32,6 +33,11 @@ class Lenet(L.LightningModule):
 
         self.conv = self._build_conv_layers()
         self.loss = nn.CrossEntropyLoss()
+        self.metrics = {
+            "f1": F1Score(task="multiclass", num_classes=num_classes),
+            "recall": Recall(task="multiclass", num_classes=num_classes),
+            "precision": Precision(task="multiclass", num_classes=num_classes),
+        }
 
         n_h = config.data.image_height // 2 ** (len(self.config.channels) - 1)
         n_w = config.data.image_width // 2 ** (len(self.config.channels) - 1)
@@ -54,6 +60,24 @@ class Lenet(L.LightningModule):
         loss = self.loss(y_hat, y)
         return loss
 
+    def _eval_step(self, batch):
+        x, y = batch
+        y_hat = self(x)
+        loss = F.cross_entropy(y_hat, y)
+        metrics = {"loss": loss}
+        for metric_name, metric in self.metrics.items():
+            metrics[metric_name] = metric(y_hat, y)
+
+        return metrics, y_hat
+
+    def validation_step(self, batch, batch_idx):
+        metrics, _ = self._eval_step(batch)
+        self.log_dict({"val_" + name: value for name, value in metrics.items()})
+
+    def test_step(self, batch, batch_idx):
+        metrics, yhat = self._eval_step(batch)
+        self.log_dict({"test_" + name: value for name, value in metrics.items()})
+
     def _build_conv_layers(self) -> nn.Sequential:
         layers = []
         for i in range(len(self.config.channels) - 1):
@@ -73,13 +97,22 @@ class Lenet(L.LightningModule):
             pass
 
 
-def build_classifier_from_config(config: DictConfig) -> L.LightningModule:
+def build_classifier_from_config(
+    config: DictConfig, from_checkpoint: bool
+) -> L.LightningModule:
     if config.model.name not in config.task.allowed_models:
         raise ValueError(
             f"Model {config.model.name} is not allowed. Expected: \
                 {config.task.allowed_models}"
         )
     if config.model.name == "lenet":
-        return Lenet(config=config, num_classes=config.task.num_classes)
+        if from_checkpoint:
+            return Lenet.load_from_checkpoint(
+                checkpoint_path=config.checkpoint_path,
+                config=config,
+                num_classes=config.task.num_classes,
+            )
+        else:
+            return Lenet(config=config, num_classes=config.task.num_classes)
     else:
         pass
