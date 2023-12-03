@@ -1,0 +1,9 @@
+defaults:
+  - base_flowers
+
+name: flowers
+path: data/flowers/
+dvc_path: /data/flowers.dvc
+image_height: 224
+image_width: 224
+crop_scale: 0.2

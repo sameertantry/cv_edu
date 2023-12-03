@@ -1,0 +1,11 @@
+defaults:
+  - base_lenet
+
+name: lenet
+channels:
+  - 3
+  - 16
+  - 32
+  - 64
+  - 128
+  - 256

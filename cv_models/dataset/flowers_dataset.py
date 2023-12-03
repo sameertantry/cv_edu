@@ -10,13 +10,12 @@ from torch.utils.data import Dataset
 
 
 class FlowersDatasetBase(Dataset):
-    def __init__(
-        self, config: DictConfig, annotations: pd.DataFrame, is_train: bool = True
-    ):
+    def __init__(self, config: DictConfig, annotations_path: str, stage: str):
         super().__init__()
         self.config = config
-        self.annotations = annotations
-        self.is_train = is_train
+        self.annotations = pd.read_csv(annotations_path)
+        self.stage = stage
+        self.is_train = stage == "train"
         self.transform = self._get_transform()
 
     def __len__(self):
@@ -71,13 +70,25 @@ class FlowersClassificationDataset(FlowersDatasetBase):
         )
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, Any]:
-        image_path = self.annotations.iloc[idx]["img_path"]
+        image_path = (
+            self.config.path + self.stage + "/" + self.annotations.iloc[idx]["img_path"]
+        )
 
         image = cv2.imread(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = self.transform(image=image)["image"]
         image = TF.to_tensor(image)
 
-        label = int(image_path.split("/")[2][1]) - 1  # data/flowers/Ax/... -> x - 1
+        label = (
+            int(self.annotations.iloc[idx]["target"][-1]) - 1
+        )  # data/flowers/Ax/... -> x - 1
 
         return image, label
+
+
+def build_flowers_dataset_from_config(config: DictConfig, stage: str) -> Dataset:
+    annotations_path = config.data.path + stage + "/annotations.csv"
+    if config.task.name == "clf":
+        return FlowersClassificationDataset(config.data, annotations_path, stage=stage)
+    else:
+        pass
