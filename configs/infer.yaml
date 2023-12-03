@@ -1,9 +1,17 @@
+defaults:
+  - logger
+
+logger:
+  experiment_name: inference
+  run_name: inference_run
+
 dataloader:
   batch_size: 32
   num_workers: 0
 
 trainer:
   max_epochs: 2
-  limit_test_batches: 0.5
+  limit_test_batches: 1.0
+  log_every_n_steps: 1
 
-checkpoint_path: weights/logs/ckpt.pth
+checkpoint_path: "weights/lenet_flowers_classification.pth"

@@ -32,6 +32,7 @@ class TrainConfig:
     data: Any
     task: Any
     model: Any
+    logger: Any
 
 
 @dataclass
@@ -41,3 +42,4 @@ class InferenceConfig:
     data: Any
     task: Any
     model: Any
+    logger: Any

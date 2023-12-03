@@ -1,0 +1,4 @@
+logger:
+  experiment_name: some_experiment_name
+  run_name: some_run_name
+  tracking_uri: http://127.0.0.1:8080
