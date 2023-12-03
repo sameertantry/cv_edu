@@ -1,8 +1,16 @@
-train:
+model:
+  optimizer:
+    name: adam
+    params:
+      lr: 0.0003
+      weight_decay: 0.0001
+
+dataloader:
   batch_size: 32
-  max_epochs: 10
-  optimizer: adam
-  lr: 0.0003
-  weight_decay: 0.0001
   num_workers: 0
+
+trainer:
+  max_epochs: 2
   limit_train_batches: 0.1
+
+checkpoint_path: weights/logs/ckpt.pth

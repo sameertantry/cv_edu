@@ -28,17 +28,16 @@ class Lenet(L.LightningModule):
     def __init__(self, config: DictConfig, num_classes: int):
         super().__init__()
 
-        self.channels = config.model.channels
-        self.config = config
+        self.config = config.model
 
         self.conv = self._build_conv_layers()
         self.loss = nn.CrossEntropyLoss()
 
-        n_h = config.data.image_height // 2 ** (len(self.channels) - 1)
-        n_w = config.data.image_width // 2 ** (len(self.channels) - 1)
+        n_h = config.data.image_height // 2 ** (len(self.config.channels) - 1)
+        n_w = config.data.image_width // 2 ** (len(self.config.channels) - 1)
         self.flatten = nn.Flatten()
         self.classification = nn.Linear(
-            in_features=self.channels[-1] * n_h * n_w,
+            in_features=self.config.channels[-1] * n_h * n_w,
             out_features=num_classes,
         )
 
@@ -57,20 +56,19 @@ class Lenet(L.LightningModule):
 
     def _build_conv_layers(self) -> nn.Sequential:
         layers = []
-        for i in range(len(self.channels) - 1):
+        for i in range(len(self.config.channels) - 1):
             layers.append(
-                ConvBlock(in_channels=self.channels[i], out_channels=self.channels[i + 1])
+                ConvBlock(
+                    in_channels=self.config.channels[i],
+                    out_channels=self.config.channels[i + 1],
+                )
             )
 
         return nn.Sequential(*layers)
 
     def configure_optimizers(self):
-        if self.config.train.optimizer == "adam":
-            return torch.optim.Adam(
-                self.parameters(),
-                lr=self.config.train.lr,
-                weight_decay=self.config.train.weight_decay,
-            )
+        if self.config.optimizer.name == "adam":
+            return torch.optim.Adam(self.parameters(), **self.config.optimizer.params)
         else:
             pass
 

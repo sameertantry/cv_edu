@@ -26,18 +26,9 @@ class Lenet:
 
 
 @dataclass
-class TrainParams:
-    batch_size: int
-    max_epochs: int
-    optimizer: str
-    lr: float
-    weight_decay: float
-    num_workers: int
-
-
-@dataclass
 class TrainConfig:
-    params: TrainParams
+    dataloader: Any
+    trainer: Any
     data: Any
     task: Any
     model: Any
