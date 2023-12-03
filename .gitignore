@@ -1,3 +1,4 @@
 **/__pycache__/
 **/debug.py
-data/**
+data/flowers/
+.vscode

@@ -1,38 +1,40 @@
+import hydra
+import lightning as L
 import pandas as pd
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from omegaconf import OmegaConf
-from src.dataset.flowers_dataset import FlowersClassificationDataset
-from src.models.lenet import LeNet
-from src.utils import load_splits
-from torch.utils.data import DataLoader
-
-
-splits = load_splits("data/flowers/tiny_splits.csv")
-config = OmegaConf.load("configs/classification_config.yaml")
-
-test_dataset = FlowersClassificationDataset(
-    config.dataset, splits["test"], is_train=False
+from hydra.core.config_store import ConfigStore
+from nano_cv.dataset.utils import build_eval_dataloader_from_config
+from nano_cv.models.utils import build_model_from_config
+from nano_cv.tools.configs import (
+    ClassificationConfig,
+    FlowersDataset,
+    InferenceConfig,
+    Lenet,
 )
-test_loader = DataLoader(test_dataset, batch_size=1)
 
-model = LeNet(config.model)
-checkpoint = torch.load("lenet.pth")
-model.load_state_dict(checkpoint["model_state_dict"])
 
-loss_fn = nn.CrossEntropyLoss(reduction="sum")
-preds = []
-loss = 0
+cs = ConfigStore.instance()
 
-with torch.no_grad():
-    for batch in test_loader:
-        x, labels = batch
-        logits = model(x)
-        probas = F.softmax(logits, dim=-1)
-        preds.append(probas.argmax(dim=-1).item())
-        loss += loss_fn(probas.unsqueeze(0), labels)
+cs.store(group="data", name="base_flowers", node=FlowersDataset)
 
-print(loss / len(test_dataset))
+cs.store(group="task", name="base_clf", node=ClassificationConfig)
 
-pd.DataFrame({"predictions": preds}).to_csv("predictions.csv")
+cs.store(group="model", name="base_lenet", node=Lenet)
+
+
+@hydra.main(config_path="configs", config_name="infer", version_base="1.3")
+def main(cfg: InferenceConfig) -> None:
+    model = build_model_from_config(cfg, from_checkpoint=True)
+    dataloader = build_eval_dataloader_from_config(cfg)
+    trainer = L.Trainer(**cfg.trainer)
+    trainer.test(model, dataloaders=dataloader)
+    if cfg.task.name == "clf":
+        raw_preds = trainer.predict(model, dataloader)
+        preds = []
+        for pred in raw_preds:
+            preds += [f"A{i + 1}" for i in pred]
+        preds = pd.DataFrame(preds, columns=["label"])
+        preds.to_csv("predictions.csv", index=False)
+
+
+if __name__ == "__main__":
+    main()

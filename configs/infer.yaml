@@ -1,0 +1,9 @@
+dataloader:
+  batch_size: 32
+  num_workers: 0
+
+trainer:
+  max_epochs: 2
+  limit_test_batches: 0.5
+
+checkpoint_path: weights/logs/ckpt.pth
