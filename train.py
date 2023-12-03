@@ -1,14 +1,9 @@
 import hydra
 import lightning as L
-from cv_models.dataset.utils import build_train_dataloader_from_config
-from cv_models.models.utils import build_model_from_config
-from cv_models.tools.configs import (
-    ClassificationConfig,
-    FlowersDataset,
-    Lenet,
-    TrainConfig,
-)
 from hydra.core.config_store import ConfigStore
+from nano_cv.dataset.utils import build_train_dataloader_from_config
+from nano_cv.models.utils import build_model_from_config
+from nano_cv.tools.configs import ClassificationConfig, FlowersDataset, Lenet, TrainConfig
 
 
 cs = ConfigStore.instance()

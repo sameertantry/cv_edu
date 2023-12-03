@@ -1,6 +1,6 @@
 import lightning as L
 import torch
-from cv_models.models.classifiers import build_classifier_from_config
+from nano_cv.models.classifiers import build_classifier_from_config
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader
 
@@ -15,7 +15,7 @@ def build_model_from_config(
 
 
 @torch.no_grad()
-def collect_predictions(model: L.LightningModule, dataloader: DataLoader):
+def predict(model: L.LightningModule, dataloader: DataLoader):
     model.eval()
     predictions = []
     for x, _ in dataloader:

@@ -1,9 +1,8 @@
 import os
 
+from nano_cv.dataset.flowers_dataset import build_flowers_dataset_from_config
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader, Dataset
-
-from .flowers_dataset import build_flowers_dataset_from_config
 
 
 def build_dataset_from_config(config: DictConfig, stage: str) -> Dataset:
