@@ -1,0 +1,6 @@
+outs:
+- md5: 4177f1056967f22ac71aecf164d22b98.dir
+  size: 5361506
+  nfiles: 1
+  hash: md5
+  path: lenet_flowers

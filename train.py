@@ -4,17 +4,14 @@ from hydra.core.config_store import ConfigStore
 from lightning.pytorch.loggers import MLFlowLogger
 from nano_cv.dataset.utils import build_train_dataloader_from_config
 from nano_cv.models.utils import build_model_from_config
-from nano_cv.tools.configs import ClassificationConfig, FlowersDataset, Lenet, TrainConfig
+from nano_cv.tools.configs import FlowersDataset, LenetConfig, TrainConfig
 from omegaconf import OmegaConf
 
 
 cs = ConfigStore.instance()
 
 cs.store(group="data", name="base_flowers", node=FlowersDataset)
-
-cs.store(group="task", name="base_clf", node=ClassificationConfig)
-
-cs.store(group="model", name="base_lenet", node=Lenet)
+cs.store(group="model", name="base_lenet", node=LenetConfig)
 
 
 @hydra.main(config_path="configs", config_name="train", version_base="1.3")

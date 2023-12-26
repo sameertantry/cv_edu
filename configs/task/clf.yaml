@@ -1,7 +1,0 @@
-defaults:
-  - base_clf
-
-name: clf
-num_classes: 4
-allowed_models:
-  - lenet

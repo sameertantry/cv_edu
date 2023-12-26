@@ -4,9 +4,9 @@ from omegaconf import DictConfig
 
 
 def build_model_from_config(
-    config: DictConfig, from_checkpoint: bool = False
+    config: DictConfig, checkpoint_path: str = None
 ) -> L.LightningModule:
-    if config.task.name == "clf":
-        return build_classifier_from_config(config, from_checkpoint=from_checkpoint)
+    if config.model.name in ("lenet",):
+        return build_classifier_from_config(config, checkpoint_path=checkpoint_path)
     else:
         pass

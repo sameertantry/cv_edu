@@ -26,7 +26,7 @@ class ConvBlock(nn.Module):
 
 
 class Lenet(L.LightningModule):
-    def __init__(self, config: DictConfig, num_classes: int):
+    def __init__(self, config: DictConfig):
         super().__init__()
 
         self.config = config.model
@@ -34,9 +34,11 @@ class Lenet(L.LightningModule):
         self.conv = self._build_conv_layers()
         self.loss = nn.CrossEntropyLoss()
         self.metrics = {
-            "f1": F1Score(task="multiclass", num_classes=num_classes),
-            "recall": Recall(task="multiclass", num_classes=num_classes),
-            "precision": Precision(task="multiclass", num_classes=num_classes),
+            "f1": F1Score(task="multiclass", num_classes=self.config.num_classes),
+            "recall": Recall(task="multiclass", num_classes=self.config.num_classes),
+            "precision": Precision(
+                task="multiclass", num_classes=self.config.num_classes
+            ),
         }
 
         n_h = config.data.image_height // 2 ** (len(self.config.channels) - 1)
@@ -44,7 +46,7 @@ class Lenet(L.LightningModule):
         self.flatten = nn.Flatten()
         self.classification = nn.Linear(
             in_features=self.config.channels[-1] * n_h * n_w,
-            out_features=num_classes,
+            out_features=self.config.num_classes,
         )
 
     def forward(self, x) -> torch.Tensor:
@@ -102,21 +104,15 @@ class Lenet(L.LightningModule):
 
 
 def build_classifier_from_config(
-    config: DictConfig, from_checkpoint: bool
+    config: DictConfig, checkpoint_path: str
 ) -> L.LightningModule:
-    if config.model.name not in config.task.allowed_models:
-        raise ValueError(
-            f"Model {config.model.name} is not allowed. Expected: \
-                {config.task.allowed_models}"
-        )
     if config.model.name == "lenet":
-        if from_checkpoint:
-            return Lenet.load_from_checkpoint(
-                checkpoint_path=config.checkpoint_path,
-                config=config,
-                num_classes=config.task.num_classes,
-            )
+        if checkpoint_path is None:
+            return Lenet(config=config)
         else:
-            return Lenet(config=config, num_classes=config.task.num_classes)
+            return Lenet.load_from_checkpoint(
+                checkpoint_path=checkpoint_path,
+                config=config,
+            )
     else:
         pass

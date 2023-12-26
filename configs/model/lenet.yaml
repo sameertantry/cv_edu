@@ -2,6 +2,7 @@ defaults:
   - base_lenet
 
 name: lenet
+num_classes: 4
 channels:
   - 3
   - 16

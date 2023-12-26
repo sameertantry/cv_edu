@@ -20,5 +20,5 @@ poetry shell
 
 dvc pull
 
-python infer.py +data=flowers +task=clf +model=lenet
+python infer.py +data=flowers +model=lenet
 ```

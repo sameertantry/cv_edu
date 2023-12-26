@@ -13,16 +13,10 @@ class FlowersDataset:
 
 
 @dataclass
-class ClassificationConfig:
-    name: str
-    num_classes: int
-    allowed_models: Any
-
-
-@dataclass
-class Lenet:
+class LenetConfig:
     name: str
     channels: Any
+    num_classes: int
 
 
 @dataclass
@@ -30,7 +24,6 @@ class TrainConfig:
     dataloader: Any
     trainer: Any
     data: Any
-    task: Any
     model: Any
     logger: Any
 
@@ -40,6 +33,13 @@ class InferenceConfig:
     dataloader: Any
     trainer: Any
     data: Any
-    task: Any
     model: Any
     logger: Any
+
+
+@dataclass
+class ExportConfig:
+    data: Any
+    model: Any
+    model_name: str
+    model_dir: str

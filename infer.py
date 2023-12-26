@@ -5,22 +5,14 @@ from hydra.core.config_store import ConfigStore
 from lightning.pytorch.loggers import MLFlowLogger
 from nano_cv.dataset.utils import build_eval_dataloader_from_config
 from nano_cv.models.utils import build_model_from_config
-from nano_cv.tools.configs import (
-    ClassificationConfig,
-    FlowersDataset,
-    InferenceConfig,
-    Lenet,
-)
+from nano_cv.tools.configs import FlowersDataset, InferenceConfig, LenetConfig
 from omegaconf import OmegaConf
 
 
 cs = ConfigStore.instance()
 
 cs.store(group="data", name="base_flowers", node=FlowersDataset)
-
-cs.store(group="task", name="base_clf", node=ClassificationConfig)
-
-cs.store(group="model", name="base_lenet", node=Lenet)
+cs.store(group="model", name="base_lenet", node=LenetConfig)
 
 
 @hydra.main(config_path="configs", config_name="infer", version_base="1.3")
@@ -37,7 +29,7 @@ def main(cfg: InferenceConfig) -> None:
         ],
     )
     trainer.test(model, dataloaders=dataloader)
-    if cfg.task.name == "clf":
+    if cfg.model.name == "lenet":
         raw_preds = trainer.predict(model, dataloader)
         preds = []
         for pred in raw_preds:
