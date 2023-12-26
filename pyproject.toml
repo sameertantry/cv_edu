@@ -6,7 +6,7 @@ authors = ["sameertantry <sameertantry@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = ">=3.10,<3.13"
 numpy = "^1.26.0"
 torch = "^2.1.0"
 torchvision = "^0.16.0"
@@ -26,6 +26,7 @@ torchmetrics = "^1.2.1"
 mlflow = "^2.8.1"
 onnx = "^1.15.0"
 onnxruntime = "^1.16.3"
+tritonclient = "^2.41.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.4.0"
