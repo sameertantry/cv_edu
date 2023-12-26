@@ -1,0 +1,2 @@
+model_name: lenet_flowers_classification
+model_dir: weights/lenet_flowers/

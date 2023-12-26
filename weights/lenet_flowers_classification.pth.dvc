@@ -1,5 +1,0 @@
-outs:
-- md5: 52c9d4f3725e05a4362522b9de2a8ef5
-  size: 5361506
-  hash: md5
-  path: lenet_flowers_classification.pth
