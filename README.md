@@ -71,3 +71,27 @@ python export_model.py +data=flowers +model=lenet # export model to onnx
 ---
 
 _при замерах `count == 2` метрики были сильно хуже_
+
+### Подсчет ограниченности по арифметике или памяти
+
+_Предполагаем, что я запускаю модель на V100 => Пороги: 40 - 140_
+
+`FLOPS(conv2d) == 2 x N x OUT x IN x Kx x Ky x H_OUT x W_OUT`
+
+`FLOPS(FC) == 2 x N x OUT x IN`
+
+| layer name | kernel | in/out channels | in/out size | MFLOPS | NPARAMS |
+| ---------- | :----: | :-------------: | ----------: | -----: | ------: |
+| conv1      |  3x3   |      3/16       |     224/112 | 10,838 | NPARAMS |
+| conv2      |  3x3   |      16/32      |      112/56 | 28,901 | NPARAMS |
+| conv3      |  3x3   |      32/64      |       56/28 | 28,901 | NPARAMS |
+| conv4      |  3x3   |     64/128      |       28/14 | 28,901 | NPARAMS |
+| conv5      |  3x3   |     128/256     |        14/7 | 28,901 | NPARAMS |
+| clf        |  nan   |    7*7*256/4    |         nan |    0.1 | NPARAMS |
+
+Conv2D:
+
+<img src="images/conv_bs.png" alt="ConvBS" width="1800"/>
+
+_Из последних строчек на скриншоте видно, что размеры сверток в совокупности с
+FP32 не очень эффективно работают_
