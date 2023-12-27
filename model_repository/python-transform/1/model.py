@@ -1,21 +1,21 @@
 import albumentations as A
 import cv2
+import numpy as np
 import torchvision.transforms.functional as TF
 import triton_python_backend_utils as pb_utils
-from omegaconf import OmegaConf
 
 
 class TritonPythonModel:
     def initialize(self, args):
-        self.config = OmegaConf.load("/asserts/lenet-transform/config.yaml")
+        # self.config = OmegaConf.load("/assets/lenet-transform/config.yaml")
         self.transform = A.Compose(
             [
                 A.Resize(
-                    height=self.config.image_height,
-                    width=self.config.image_height,
+                    height=224,
+                    width=224,
                     interpolation=cv2.INTER_LINEAR,
                 ),
-                A.Normalize(mean=self.config.mean, std=self.config.std),
+                A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             ]
         )
 
@@ -24,12 +24,12 @@ class TritonPythonModel:
         image = self.transform(image)
         image = TF.to_tensor(image)
 
-        return image.numpy()
+        return np.array(image, dtype=np.float32)
 
     def execute(self, requests):
         responses = []
         for request in requests:
-            images = pb_utils.get_input_tensor_by_name(request, "IMAGES").as_numpy()
+            images = pb_utils.get_input_tensor_by_name(request, "INPUT_IMAGES").as_numpy()
 
             transformed_images = [self.convert(image) for image in images]
             output_tensor = pb_utils.Tensor("IMAGES", transformed_images)

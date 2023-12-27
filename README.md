@@ -1,6 +1,16 @@
 # Nano Computer Vision model
 
-### The primary goal of this repository is to solve different computer vision problems, such as:
+### Setup:
+
+- macOS Ventura 13.6.1
+- 2 GHz 4‑ядерный процессор Intel Core i5
+- 16 ГБ 3733 MHz LPDDR4X
+
+---
+
+### Description
+
+#### The primary goal of this repository is to solve different computer vision problems, such as:
 
 - image classification
 - object detection (TBD)
@@ -27,6 +37,10 @@ python infer.py +data=flowers +model=lenet # infer model lenet on flowers datase
 ```bash
 python export_model.py +data=flowers +model=lenet # export model to onnx
 ```
+
+### Model repository structure
+
+<img src="images/model_repository_tree.png" alt="Tree" width="224"/>
 
 ## Triton server metrics
 

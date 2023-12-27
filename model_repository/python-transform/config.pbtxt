@@ -1,10 +1,10 @@
 name: "python-transform"
-platform: "python"
+backend: "python"
 max_batch_size: 0
 
 input [
     {
-        name: "IMAGES"
+        name: "INPUT_IMAGES"
         data_type: TYPE_INT8
         dims: [ -1, -1, 3 ]
     }
