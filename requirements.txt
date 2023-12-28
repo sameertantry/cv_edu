@@ -1,0 +1,5 @@
+albumentations
+opencv-python-headless
+omegaconf
+torch
+torchvision
